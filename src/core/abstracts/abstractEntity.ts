@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import type { Position } from '../../types/core';
 import type AbstractWorld from './abstractWorld';
 
@@ -11,8 +12,8 @@ abstract class AbstractEntity {
   isAlive = true;
   metabolismRate = 0.5;
 
-  constructor(id: string, position: Position, energy = 100, health = 100) {
-    this.id = id;
+  constructor(position: Position, energy = 100, health = 100) {
+    this.id = uuidv4();
     this.energy = energy;
     this.health = health;
     this.position = position;

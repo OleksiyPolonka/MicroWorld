@@ -1,7 +1,7 @@
 import { WORLD_SIZE } from '../main';
 import { DIRECTIONS, MIN_ENERGY_FOR_REPRODUCE } from '../constants';
 
-import type { Direction, Position } from '../types/core';
+import { Maturity, type Direction, type Position } from '../types/core';
 import type AbstractEntity from '../core/abstracts/abstractEntity';
 import type AbstractResource from '../core/abstracts/abstractResource';
 
@@ -14,18 +14,24 @@ export const findNearestResource = (
   resources: AbstractResource[]
 ): Position | null => {
   let minDistance = Infinity;
-  let nearest = null;
+  let nearest: Position | null = null;
 
   resources.forEach((resource) => {
+    if (!resource.position) return;
+
     // Calculate Euclidean distance
     const dx = resource.position.x - position.x;
     const dy = resource.position.y - position.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Check if this resource is within 15 units distance
-    if (distance <= 15 && distance < minDistance) {
+    if (
+      distance <= 25 &&
+      distance < minDistance &&
+      (resource.maturity === Maturity.Growing ||
+        resource.maturity === Maturity.Mature)
+    ) {
       minDistance = distance;
-      nearest = resource;
+      nearest = resource.position; // Use position, not the entire resource
     }
   });
 
@@ -53,7 +59,7 @@ export const isValidMove = (x: number, y: number): boolean => {
 };
 
 export const hasEnoughEnergyForReproduce = (energy: number) => {
-  return energy > MIN_ENERGY_FOR_REPRODUCE * 2 + 10; // TODO: should be dynamic value based on entities mature
+  return energy > MIN_ENERGY_FOR_REPRODUCE * 4 + 10; // TODO: should be dynamic value based on entities mature
 };
 
 export const actionDelay = async (

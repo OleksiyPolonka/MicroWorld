@@ -1,9 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
-
 import AbstractEntity from './abstracts/abstractEntity';
 import type AbstractWorld from './abstracts/abstractWorld';
 
-import type { Position } from '../types/core';
+import { Maturity, type Position } from '../types/core';
 import {
   MIN_ENERGY_FOR_REPRODUCE,
   SIMPLE_CONSUME_DELAY,
@@ -21,7 +19,7 @@ import {
 
 class Entity extends AbstractEntity {
   constructor(position: Position, energy = 100, health = 100) {
-    super(uuidv4(), position, energy, health);
+    super(position, energy, health);
   }
 
   move(world: AbstractWorld): void {
@@ -100,11 +98,16 @@ class Entity extends AbstractEntity {
       ({ position }) =>
         position.x === this.position.x && position.y === this.position.y
     );
-    if (idx >= 0 && world.resources[idx] != null) {
+    if (
+      idx >= 0 &&
+      world.resources[idx] != null &&
+      (world.resources[idx].maturity === Maturity.Growing ||
+        world.resources[idx].maturity === Maturity.Mature)
+    ) {
+      let energyGain = world.resources[idx].calories * this.metabolismRate;
       world.resources.splice(idx, 1);
       await actionDelay(this, SIMPLE_CONSUME_DELAY);
 
-      let energyGain = world.resources[idx].calories * this.metabolismRate;
       this.energy += Math.floor(energyGain);
     }
   }
@@ -134,7 +137,7 @@ class Entity extends AbstractEntity {
 
   async reproduce(): Promise<Entity | null> {
     if (this.energy > MIN_ENERGY_FOR_REPRODUCE) {
-      this.energy -= MIN_ENERGY_FOR_REPRODUCE; // TODO: Need to decrease energy energy gradually
+      this.energy -= MIN_ENERGY_FOR_REPRODUCE; // TODO: Need to decrease energy gradually
 
       await actionDelay(this, SIMPLE_REPRODUCE_DELAY);
 
